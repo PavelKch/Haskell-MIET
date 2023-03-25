@@ -18,14 +18,30 @@ distance x y = error "todo"
 
 -- используйте рекурсию и сопоставление с образцом
 intersect :: [Integer] -> [Integer] -> [Integer]
-intersect xs ys = error "todo"
+intersect [] _ = []
+intersect _ [] = []
+intersect (x:xs) ys = if  findElement x ys 
+    then x : intersect xs ys
+	else intersect xs ys
+
+{- Функция поиска заданного элемента в списке, True если элемент встречается в списке, False если нет -}
+findElement :: Integer -> [Integer] -> Bool
+findElement x ([])   = False
+findElement x (y:[]) = x == y
+findElement x (y:ys) = x == y || findElement x  ys
 
 -- zipN принимает список списков и возвращает список, который состоит из
 -- списка их первых элементов, списка их вторых элементов, и так далее.
 -- zipN [[1, 2, 3], [4, 5, 6], [7, 8, 9]] == [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
 -- zipN [[1, 2, 3], [4, 5], [6]] == [[1, 4, 6], [2, 5], [3]]
-zipN :: [[a]] -> [[a]]
-zipN xss = error "todo"
+{- zipN :: [[a]] -> [[a]]
+zipN [[]] = [[]]
+zipN xss  = [[]]
+
+
+zipfirst :: [a] -> [[a]]
+zipfirst [] = []
+zipfirst (x:xs) = [x] : zipfist xs -}
 
 -- Нижеперечисленные функции можно реализовать или рекурсивно, или с помощью
 -- стандартных функций для работы со списками (map, filter и т.д.)
@@ -38,22 +54,40 @@ zipN xss = error "todo"
 -- findLast (> 0) [-1, 2, -3, 4] == Just 4
 -- find (> 0) [-1, -2, -3] == Nothing
 find, findLast :: (a -> Bool) -> [a] -> Maybe a
-find f xs = error "todo"
-findLast f xs = error "todo"
+find f xs =if null ans 
+    then Nothing 
+    else head ans 
+	    where ans = filter f xs
+findLast f xs = findLast f (reverse x)
+
+
 
 -- mapFuncs принимает список функций fs и возвращает список результатов 
 -- применения всех функций из fs к x.
 -- mapFuncs [\x -> x*x, (1 +), \x -> if even x then 1 else 0] 3 == [9, 4, 0]
+
 mapFuncs :: [a -> b] -> a -> [b]
-mapFuncs fs x = error "todo"
+mapFuncs [] x = []
+mapFuncs (f:fs) x = f x : mapFuncs fs x
+
+--mapFuncs' :: [a -> b] -> a -> [b]
+--mapFuncs' fs x = 
 
 -- satisfiesAll принимает список предикатов (функций, возвращающих Bool) preds
 -- и возвращает True, если все они выполняются (т.е. возвращают True) для x.
 -- Полезные стандартные функции: and, all.
 -- satisfiesAll [even, \x -> x rem 5 == 0] 10 == True
 -- satisfiesAll [] 4 == True (кстати, почему?)
+
 satisfiesAll :: [a -> Bool] -> a -> Bool
-satisfiesAll preds x = error "todo"
+satisfiesAll [] _ = True 
+{- такая же ситуация, что и с командой all, 
+ищется предикат для которого возвращается False, таких предикатов не будет, 
+если передается пустой список -}
+
+satisfiesAll (pred:preds) x = pred x  && satisfiesAll preds x
+
+
 
 -- Непустой список состоит из первого элемента (головы)
 -- и обычного списка остальных элементов
