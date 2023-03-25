@@ -32,15 +32,16 @@ main = hspec $ do
 		
         it "geomProgression" $ do
             geomProgression 3.0 2.0 2 `shouldBe` 12.0
-            geomProgression 3.0 2.0 (-5) `shouldBe` error "The value of n must be greater than 0 !" -- с эти тестом проходит компиляцию, но тест проваливается ???
-			--geomProgression 3.0 2.0 (-5) `shouldBe` error "The value of n must be greater than 0 !" -- с эти тестом проходит компиляцию, но тест проваливается ???
-			--evaluate (geomProgression 3.0 2.0 (-5)) `shouldBe` error "The value of n must be greater than 0 !"
+            --geomProgression 3.0 2.0 (-5) `shouldBe` error "The value of n must be greater than 0 !" -- с эти тестом проходит компиляцию, но тест проваливается ???
+            evaluate (geomProgression 3.0 2.0 (-5)) `shouldThrow` anyException
             geomProgression 3.0 2.0 0 `shouldBe` 3.0
             geomProgression 1.0 1.0 100000 `shouldBe` 1.0
             geomProgression 1.0 0.5 10 `shouldBe` 9.765625e-4 --  1.0 / (2 ^ 10) == 9.765625e-4
             geomProgression 1.0 2.0 40 `shouldBe` 1.099511627776e12 --  2^40 == 1099511627776
             geomProgression 1.0 0.9 100 `shouldBe` 2.6561398887587544e-5
-            geomProgression (10.0 ^ 100) 0.1 100 `shouldBe` 1.0
+            geomProgression (10.0 ^ 100) 0.1 100 `shouldBe` 1.0000000000000056
+			--geomProgression 3.0 2.0 (-5) `shouldBe` error "The value of n must be greater than 0 !" -- с эти тестом проходит компиляцию, но тест проваливается ???
+			--evaluate (geomProgression 3.0 2.0 (-5)) `shouldBe` error "The value of n must be greater than 0 !"
 			
         it "coprime" $ do
     	    coprime 10 15 `shouldBe` False
@@ -63,12 +64,12 @@ main = hspec $ do
             gcd' 269 271 `shouldBe` gcd 269 271 		
 			
 -- Пока не получилось отладить тесты для rbgToCmyk	
-{-		it "rbgToCmyk" $ do
-           (rbgToCmyk (RGB 0 0 0)) `shouldBe` CMYK {cyan = 0.0, magenta = 0.0, yellow = 0.0, black = 1.0}
-           (rbgToCmyk (RGB 255 255 255)) `shouldBe` CMYK {cyan = 0.0, magenta = 0.0, yellow = 0.0, black = 0.0}
-           (rbgToCmyk (RGB 10 10 10)) `shouldBe` CMYK {cyan = 0.0, magenta = 0.0, yellow = 0.0, black = 0.96}
-           (rbgToCmyk (RGB 100 50 25)) `shouldBe` CMYK {cyan = 0.0, magenta = 0.50, yellow = 0.75, black = 0.6}
-           (rbgToCmyk (RGB 180 230 13)) `shouldBe` CMYK {cyan = 0.22, magenta = 0.0, yellow = 0.94, black = 0.1} -} 
+        it "rbgToCmyk" $ do
+           rbgToCmyk RGB {red = 0,   green = 0,   blue = 0}   `shouldBe` CMYK {cyan = 0.0, magenta = 0.0, yellow = 0.0, black = 1.0}
+           rbgToCmyk RGB {red = 255, green = 255, blue = 255} `shouldBe` CMYK {cyan = 0.0, magenta = 0.0, yellow = 0.0, black = 0.0}
+           rbgToCmyk RGB {red = 10,  green = 10,  blue = 10}  `shouldBe` CMYK {cyan = 0.0, magenta = 0.0, yellow = 0.0, black = 0.9607843137254902}
+           rbgToCmyk RGB {red = 100, green = 50,  blue = 25}  `shouldBe` CMYK {cyan = 0.0, magenta = 0.50, yellow = 0.75, black = 0.607843137254902}
+           rbgToCmyk RGB {red = 180, green = 230, blue = 13}  `shouldBe` CMYK {cyan = 0.21739130434782605, magenta = 0.0, yellow = 0.9434782608695652, black = 9.80392156862745e-2} 
 
     describe "lists" $ do
         it "distance" pending
