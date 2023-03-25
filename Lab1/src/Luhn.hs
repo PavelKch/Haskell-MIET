@@ -10,5 +10,17 @@ module Luhn where
 -- Не пытайтесь собрать всё в одну функцию, используйте вспомогательные.
 -- Например: разбить число на цифры (возможно, сразу в обратном порядке).
 -- Не забудьте добавить тесты, в том числе для вспомогательных функций!
+
 isLuhnValid :: Int -> Bool
-isLuhnValid = error "todo"
+isLuhnValid x = mod (helper (abs x) 0 False)  10  == 0
+
+{- функция преобразовывающая исходное число согласно алгоритму -}
+helper 0 acc _ = acc
+helper b acc True = helper (div b 10) (acc + a1) False where
+    b1 = mod b 10
+    a1 = if b1 > 4 then 2 * b1 - 9 else b1
+helper b acc False = helper (div b 10) (acc + (mod b 10)) True
+		
+	
+	
+
