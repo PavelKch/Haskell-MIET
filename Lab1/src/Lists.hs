@@ -10,7 +10,13 @@ newtype Point = Point [Double] deriving (Eq, Show, Read)
 
 -- используйте рекурсию и сопоставление с образцом
 distance :: Point -> Point -> Double
-distance x y = error "todo"
+distance x y = sqrt (distanceHelp x y)
+
+distanceHelp :: Point -> Point -> Double
+distanceHelp (Point[]) (Point[]) = 0
+distanceHelp (Point[]) _ = error " Dot dimensions do not match !"
+distanceHelp _ (Point[]) = error " Dot dimensions do not match !"
+distanceHelp (Point(x:xs)) (Point(y:ys)) = (x - y) ^ 2 + distanceHelp (Point xs) (Point ys)
 
 -- intersect xs ys возвращает список, содержащий общие элементы двух списков.
 -- intersect [1, 2, 4, 6] [5, 4, 2, 5, 7] == [2, 4] (или [4, 2]!)
@@ -22,7 +28,7 @@ intersect [] _ = []
 intersect _ [] = []
 intersect (x:xs) ys = if  findElement x ys 
     then x : intersect xs ys
-	else intersect xs ys
+    else intersect xs ys
 
 {- Функция поиска заданного элемента в списке, True если элемент встречается в списке, False если нет -}
 findElement :: Integer -> [Integer] -> Bool
@@ -34,14 +40,24 @@ findElement x (y:ys) = x == y || findElement x  ys
 -- списка их первых элементов, списка их вторых элементов, и так далее.
 -- zipN [[1, 2, 3], [4, 5, 6], [7, 8, 9]] == [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
 -- zipN [[1, 2, 3], [4, 5], [6]] == [[1, 4, 6], [2, 5], [3]]
-{- zipN :: [[a]] -> [[a]]
+zipN :: [[a]] -> [[a]]
+zipN [] = []
 zipN [[]] = [[]]
-zipN xss  = [[]]
+--zipN [[]:[]] = [[]]
+zipN xss  = ziphead xss : zipN (ziptail xss)
 
-
-zipfirst :: [a] -> [[a]]
-zipfirst [] = []
-zipfirst (x:xs) = [x] : zipfist xs -}
+-- ziphead принимает список списков и возвращает список из первых элементов
+ziphead :: [[a]] -> [a]
+ziphead [] = [] 
+ziphead [[]] = [] 
+--ziphead [x] = head x
+ziphead (xs:xss) = head xs : ziphead xss
+ 
+-- ziptail принимает список списков и возвращает список из спсков без первых элементов
+ziptail:: [[a]] -> [[a]]
+ziptail [[]] = [[]] 
+ziptail [] = [] 
+ziptail (xs:xss) = tail xs : ziptail xss
 
 -- Нижеперечисленные функции можно реализовать или рекурсивно, или с помощью
 -- стандартных функций для работы со списками (map, filter и т.д.)
@@ -54,11 +70,11 @@ zipfirst (x:xs) = [x] : zipfist xs -}
 -- findLast (> 0) [-1, 2, -3, 4] == Just 4
 -- find (> 0) [-1, -2, -3] == Nothing
 find, findLast :: (a -> Bool) -> [a] -> Maybe a
-find f xs =if null ans 
+find f xs = if null ans 
     then Nothing 
-    else head ans 
-	    where ans = filter f xs
-findLast f xs = findLast f (reverse x)
+    else Just (head ans)
+        where ans = filter f xs
+findLast f xs = find f (reverse xs)
 
 
 
