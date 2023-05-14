@@ -33,7 +33,6 @@ intersect (x:xs) ys = if  findElement x ys
 {- Функция поиска заданного элемента в списке, True если элемент встречается в списке, False если нет -}
 findElement :: Integer -> [Integer] -> Bool
 findElement x ([])   = False
-findElement x (y:[]) = x == y
 findElement x (y:ys) = x == y || findElement x  ys
 
 -- zipN принимает список списков и возвращает список, который состоит из
