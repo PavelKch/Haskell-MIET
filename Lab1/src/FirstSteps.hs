@@ -96,5 +96,5 @@ gcd' a b
     |  a == b              = abs a
     | otherwise            = helper (abs a) (abs b)  where
         helper a b = if mod (max a b) (min a b) == 0 
-		    then (min a b)
+		then (min a b)
 	        else helper (min a b) (mod (max a b) (min a b))
