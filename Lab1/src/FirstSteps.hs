@@ -49,7 +49,6 @@ rbgToCmyk color = CMYK { cyan = cyan', magenta = magenta', yellow = yellow', bla
     cyan'    =  if black' == 1 then 0 else (1 - red'   - black') / (1 - black')
     magenta' =  if black' == 1 then 0 else (1 - green' - black') / (1 - black')
     yellow'  =  if black' == 1 then 0 else (1 - blue'  - black') / (1 - black')
-	
 
 -- geomProgression b q n находит n-й (считая с 0) член 
 -- геометрической прогрессии, нулевой член которой -- b, 

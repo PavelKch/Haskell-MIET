@@ -33,7 +33,7 @@ intersect (x:xs) ys = if  findElement x ys
 {- Функция поиска заданного элемента в списке, True если элемент встречается в списке, False если нет -}
 findElement :: Integer -> [Integer] -> Bool
 findElement x ([])   = False
-findElement x (y:[]) = x == y
+
 findElement x (y:ys) = x == y || findElement x  ys
 
 -- zipN принимает список списков и возвращает список, который состоит из
@@ -74,6 +74,7 @@ find f xs = if null ans
     then Nothing 
     else Just (head ans)
         where ans = filter f xs
+		
 findLast f xs = find f (reverse xs)
 
 
@@ -86,8 +87,8 @@ mapFuncs :: [a -> b] -> a -> [b]
 mapFuncs [] x = []
 mapFuncs (f:fs) x = f x : mapFuncs fs x
 
---mapFuncs' :: [a -> b] -> a -> [b]
---mapFuncs' fs x = 
+mapFuncs' :: [a -> b] -> a -> [b]
+mapFuncs' fs x' = map (\f -> f x') fs
 
 -- satisfiesAll принимает список предикатов (функций, возвращающих Bool) preds
 -- и возвращает True, если все они выполняются (т.е. возвращают True) для x.
@@ -96,24 +97,30 @@ mapFuncs (f:fs) x = f x : mapFuncs fs x
 -- satisfiesAll [] 4 == True (кстати, почему?)
 
 satisfiesAll :: [a -> Bool] -> a -> Bool
-satisfiesAll [] _ = True 
-{- такая же ситуация, что и с командой all, 
-ищется предикат для которого возвращается False, таких предикатов не будет, 
-если передается пустой список -}
-
-satisfiesAll (pred:preds) x = pred x  && satisfiesAll preds x
-
-
+satisfiesAll ps xs = all (==True) (map (\f -> f xs) ps)
 
 -- Непустой список состоит из первого элемента (головы)
 -- и обычного списка остальных элементов
 -- Например, NEL 1 [2, 3] соотвествует списку [1, 2, 3], а NEL 1 [] -- списку [1].
-data NEL a = NEL a [a]
+data NEL a = NEL a [a] deriving (Show, Eq)
 
 -- Запишите правильный тип (т.е. такой, чтобы функция имела результат для любых аргументов
 -- без вызовов error) и реализуйте функции на NEL, аналогичные tail, last и zip
--- tailNel :: NEL a -> ???
--- lastNel :: NEL a -> ???
--- zipNel :: NEL a -> NEL b -> ???
--- listToNel :: [a] -> ???
--- nelToList :: NEL a -> ???
+tailNel :: NEL a -> Maybe (NEL a)
+tailNel (NEL _ []) = Nothing
+tailNel (NEL _ x)  = Just (NEL (head x) (tail x))
+
+lastNel :: NEL a -> a
+lastNel (NEL x []) = x
+lastNel (NEL _ x)  = last x
+
+zipNel :: NEL a -> NEL b -> Maybe (NEL (a, b))
+zipNel x1 x2 = listToNel ( zip (nelToList x1) (nelToList x2) )
+
+listToNel :: [a] -> Maybe (NEL a)
+listToNel []     = Nothing
+listToNel (x:xs) = Just (NEL x xs) 
+
+nelToList :: NEL a -> [a]
+nelToList (NEL x []) = [x]
+nelToList n@(NEL x xs) = x : nelToList( NEL (head xs) (tail xs))

@@ -72,15 +72,88 @@ main = hspec $ do
            rbgToCmyk RGB {red = 180, green = 230, blue = 13}  `shouldBe` CMYK {cyan = 0.21739130434782605, magenta = 0.0, yellow = 0.9434782608695652, black = 9.80392156862745e-2} 
 
     describe "lists" $ do
+	
         it "distance" pending
+		    distance (Point []) (Point []) `shouldBe` 0
+            distance (Point [0.0]) (Point [1.0]) `shouldBe` 1.0
+            distance (Point [0.0, 0.0]) (Point [0.0, 1.0]) `shouldBe` 1.0
+            distance (Point [1.0, 0.0]) (Point [0.0, 1.0]) `shouldBe` 2**(1/2)
+            distance (Point [0.0, 0.0, 0.0]) (Point [1.0, 1.0, 1.0]) `shouldBe` 3**(1/2)
+            distance (Point [1.0, 2.0, 3.0, 4.0]) (Point [5.0, 6.0, 7.0, 8.0]) `shouldBe` 8.0
+            evaluate (distance (Point [0.0, 1.0, 0.0, 1.0, 0.1]) (Point [3.0, 4.0, 0.0])) `shouldThrow` anyException
+            evaluate (distance (Point [0.0, 0.0, 0.0]) (Point [0.0, 1.0])) `shouldThrow` anyException
+            evaluate (distance (Point [0.0, 0.0, 0.0]) (Point [0.0, 1.0, 1.0, 1.0])) `shouldThrow` anyException	
+	
+        it "findElement" pending
+		    findElement 1 [] `shouldBe` False
+		    findElement 1 [1, 2, 3, 4] `shouldBe` True
+		    findElement 1 [4, 3, 2, 1] `shouldBe` True
+		    findElement 5 [4, 3, 2, 1] `shouldBe` False
+			
         it "intersect" pending
+		    intersect [1, 2, 3, 4] [4, 5, 6, 7, 1] `shouldBe` [1, 4]
+            intersect [1, 2, 3, 4] [5, 6, 7] `shouldBe` []
+            intersect [] [] `shouldBe` []
+            intersect [1, 1, 1, 1] [2, 2, 2, 2, 2] `shouldBe` []
+            intersect [1, 2, 3, 4, 1] [1, 2, 3, 4, 1, 2] `shouldBe` [1, 2, 3, 4, 1]
+			
+		{- есть сложность с функцией zipN при работе, некорректная работа с -}
         it "zipN" pending
+		
+        it "ziphead" pending
+		    ziphead [[1, 2, 3], [4, 5, 6], [7, 8, 9]] `shouldBe` [1,4,7]
+			ziphead [[1, 2, 3], [4, 5], [6]] `shouldBe` [1,4,6]
+		
+		{- в ziptail возникает ошибка когда исходные списки разной длинны, в случаи последней обратоки-}
+        it "ziptail" pending
+		    ziptail [[1, 2, 3], [4, 5, 6], [7, 8, 9]] `shouldBe` [[2,3],[5,6],[8,9]]
+			ziptail [[1, 2, 3], [4, 5], [6]] `shouldBe` [[2,3],[5],[]]
+			
         it "find" pending
+            find (> 0)  [-1, 2, -3, 4] 	`shouldBe` Just 2
+            find (odd)  [-1, 1, -3, 4] 	`shouldBe` Just (-1)
+            find (even) [-1, 1, -3, 5]  `shouldBe` Nothing
+            find (> 0)  [-1, -2, -3]   	`shouldBe` Nothing
+			
         it "findLast" pending
+		    findLast (> 0) [-1, 2, -3, 4] `shouldBe` Just 4
+            findLast (< 0) [-1, 2, -3, 4] `shouldBe` Just (-3)
+            findLast (odd) [-1, 1, -3, 4] `shouldBe` Just (-3)
+            findLast (even) [-1, 1, -3, 5] `shouldBe` Nothing
+			
         it "mapFuncs" pending
+            mapFuncs [\x -> x*x, (1 +), \x -> if even x then 1 else 0] 3 `shouldBe` [9, 4, 0]
+            mapFuncs [\x -> sqrt (-x), abs] (-4) `shouldBe` [2.0,4.0]
+            mapFuncs'[\x -> x*x, (1 +), \x -> if even x then 1 else 0] 3 `shouldBe` [9, 4, 0]
+            mapFuncs' [\x -> sqrt (-x), abs] (-4) `shouldBe` [2.0,4.0]
+			
+        it "satisfiesAll" $ do
+            satisfiesAll [even, \x -> x `rem` 5 == 0] 10 `shouldBe` True
+            satisfiesAll [] 4 `shouldBe` True
+			
         it "tailNel" pending
+            tailNel (NEL 1 [2,3]) `shouldBe` Just (NEL 2 [3])
+            tailNel (NEL 1 [2]) `shouldBe` Just (NEL 2 [])
+            tailNel (NEL 1 []) `shouldBe` Nothing
+			
         it "lastNel" pending
+            lastNel (NEL 1 [2,3]) `shouldBe` 3
+            lastNel (NEL 1 []) `shouldBe` 1
+            lastNel (NEL 1 [2]) `shouldBe` 2
+		
         it "zipNel" pending
+		    zipNel (NEL 1 [2,3]) (NEL 1 [2,3]) `shouldBe` Just (NEL (1,1) [(2,2),(3,3)])
+            zipNel (NEL 1 []) (NEL 1 []) `shouldBe` Just (NEL (1,1) [])
+            zipNel (NEL 1 [2]) (NEL 1 [3]) `shouldBe` Just (NEL (1,1) [(2,3)]) 
+			
         it "listToNel" pending
+            listToNel [1,2,3] `shouldBe` Just (NEL 1 [2,3])
+            listToNel [1] `shouldBe` Just (NEL 1 [])
+		
         it "nelToList" pending
+            nelToList (NEL 1 [2,3]) `shouldBe` [1, 2, 3]
+            nelToList (NEL 1 []) `shouldBe` [1]
+		
     describe "luhn" $ it "" pending
+            isLuhnValid 5536913875386613 `shouldBe` True
+            isLuhnValid 4561261212345464 `shouldBe` False
