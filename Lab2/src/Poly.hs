@@ -6,19 +6,21 @@ module Poly where
 -- a -- тип коэффициентов, список начинается со свободного члена.
 -- Бонус: при решении следующих заданий подумайте, какие стали бы проще или
 -- сложнее при обратном порядке коэффициентов (и добавьте комментарий).
+{- Комманетарий, в задании 4 было проще при обратном порядке коэффициентов, если желаемый вывода строки в порядке уменьшения степени полинома. -}
 newtype Poly a = P [a]
 
 -- Задание 1 -----------------------------------------
 
 -- Определите многочлен $x$.
 x :: Num a => Poly a
-x = undefined
+x = P [0, 1]
 
 -- Задание 2 -----------------------------------------
 
 -- Функция, считающая значение многочлена в точке
 applyPoly :: Num a => Poly a -> a -> a
-applyPoly = undefined
+applyPoly (P []) _ = 0
+applyPoly (P (c:cs)) x = c + x * applyPoly (P cs) x
 
 -- Задание 3 ----------------------------------------
 
@@ -26,25 +28,40 @@ applyPoly = undefined
 -- Заметьте, что многочлены с разными списками коэффициентов
 -- могут быть равны! Подумайте, почему.
 instance (Num a, Eq a) => Eq (Poly a) where
-    (==) = undefined
+    (==) (P []) (P []) = True
+    (==) (P []) _ = False
+    (==) _ (P []) = False
+    (==) (P (c1:cs1)) (P (c2:cs2)) = c1 == c2 && P cs1 == P cs2
  
 -- Задание 4 -----------------------------------------
-
 -- Определите перевод многочлена в строку. 
 -- Это должна быть стандартная математическая запись, 
 -- например: show (3 * x * x + 1) == "3 * x^2 + 1").
 -- (* и + для многочленов можно будет использовать после задания 6.)
-instance (Num a, Eq a, Show a) => Show (Poly a) where
-    show = undefined
-
+instance (Eq a, Num a, Show a) => Show (Poly a) where
+    show (P []) = "0"
+    show (P cs) = let 
+        showTerm deg coeff = 
+            let coeff' = if coeff == 1 && deg /= 0 then "" else show coeff
+                deg' = if deg <= 1 then "x" else "x^" ++ show deg
+            in if deg == 0 then coeff' else coeff' ++ deg'
+        showTerms [] = ""
+        showTerms [(deg,coeff)] = showTerm deg coeff
+        showTerms ((deg,coeff):rest) =
+            case showTerms rest of
+                "" -> showTerm deg coeff
+                otherTerms -> showTerm deg coeff ++ " + " ++ otherTerms
+        in showTerms $ reverse $ filter (\(deg,coeff) -> coeff /= 0) $ zip [0..] cs
 -- Задание 5 -----------------------------------------
 
 -- Определите сложение многочленов
 plus :: Num a => Poly a -> Poly a -> Poly a
-plus = undefined
+plus (P []) q = q
+plus p (P []) = p
+plus (P (c1:cs1)) (P (c2:cs2)) = P (c1 + c2 : coeffs)
+    where P coeffs = plus (P cs1) (P cs2)
 
 -- Задание 6 -----------------------------------------
-
 -- Определите умножение многочленов
 times :: Num a => Poly a -> Poly a -> Poly a
 times = undefined
@@ -55,8 +72,8 @@ times = undefined
 instance Num a => Num (Poly a) where
     (+) = plus
     (*) = times
-    negate      = undefined
-    fromInteger = undefined
+    --negate      = P (fmap negate coeffs)
+    --fromInteger = P [fromInteger n]
     -- Эти функции оставить как undefined, поскольку для 
     -- многочленов они не имеют математического смысла
     abs    = undefined
@@ -70,10 +87,12 @@ class Num a => Differentiable a where
     deriv  :: a -> a
     -- взятие n-ной производной
     nderiv :: Int -> a -> a
-    nderiv = undefined
+    nderiv n f = nderiv (n-1) (deriv f)
 
 -- Задание 9 -----------------------------------------
 
 -- Определите экземпляр класса типов
-instance Num a => Differentiable (Poly a) where
-    deriv = undefined
+instance (Num a, Enum a) => Differentiable (Poly a) where
+    deriv (P []) = P []
+    deriv (P [_]) = P []
+    deriv (P (_:cs)) = P (zipWith (*) [1..] cs)
