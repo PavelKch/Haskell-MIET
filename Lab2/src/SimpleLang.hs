@@ -108,7 +108,7 @@ runSimpler state loop@(DWhile cond body) = if eval state cond /= 0 then runSimpl
 runSimpler state (DSequence st1 st2) = runSimpler (runSimpler state st1) st2
 runSimpler state DSkip = state
 
-{- 
+{- -}
 -- 
 -- in s "A" ~?= 10
 
@@ -185,4 +185,4 @@ fibonacci =
               , Assign "Out" (Var "T")
               ])
        ]) 
--}
+{--}
