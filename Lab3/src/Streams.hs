@@ -17,12 +17,13 @@ instance Show a => Show (Stream a) where
 
 -- Реализуйте функцию, превращающую поток в (бесконечный) список
 streamToList :: Stream a -> [a]
-streamToList = undefined
+streamToList = x : streamToList xs
 
 -- функция, возвращающая n первых элементов потока
 -- удобна для написания тестов следующих функций
 sTake :: Int -> Stream a -> [a]
-sTake = undefined
+sTake n _ | n <= 0 = []
+sTake n (x :> xs) = x : sTake (n-1) xs
 
 -- Задание 2 -----------------------------------------
 
@@ -31,7 +32,7 @@ sTake = undefined
 
 -- поток, состоящий из одинаковых элементов
 sRepeat :: a -> Stream a
-sRepeat = undefined
+sRepeat x = x :> sRepeat x
 
 -- sRepeat 1 == [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
 
@@ -40,19 +41,20 @@ sRepeat = undefined
 -- будет циклическим (ссылаться сам на себя), а не бесконечно растущим)
 -- sCycle [1, 2, 3] == [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, ...
 sCycle :: [a] -> Stream a
-sCycle = undefined
+sCycle [] = error "Empty list"
+sCycle xs = foldr (:>) (sCycle xs) xs
 
 -- поток, заданный начальным значением и функцией, строящей следующее значение
 -- по текущему
 -- sIterate (/ 2) 1.0 == [1.0, 0.5, 0.25, 0.125, 0.0625, ...
 sIterate :: (a -> a) -> a -> Stream a
-sIterate = undefined
+sIterate f x = x :> sIterate f (f x)
 
 -- функция, возвращающая поток из чередующихся элементов двух потоков
 -- (для следующего задания нужно сделать эту функцию ленивой по
 -- второму аргументу, то есть не сопоставлять его с образцом)
 sInterleave :: Stream a -> Stream a -> Stream a
-sInterleave (_ :> _) _ = undefined
+sInterleave (x :> xs) ys = x :> sInterleave ys xs
 
 -- sInterleave (sRepeat 1) (sRepeat 2) == [1, 2, 1, 2, 1, 2, ...
 
@@ -62,7 +64,7 @@ sInterleave (_ :> _) _ = undefined
 
 -- поток натуральных чисел (начиная с 0)
 nats :: Stream Integer
-nats = undefined
+nats = sIterate (+1) 0
 
 -- nats == [0, 1, 2, 3, 4, 5, 6, 7, ...
 
@@ -71,7 +73,7 @@ nats = undefined
 -- проверок на делимость, если её реализация ленива по второму аргументу
 -- (подумайте, почему это важно).
 ruler :: Stream Integer
-ruler = undefined
+ruler = sInterleave (sRepeat 0) (sIterate (+1) 1)
 
 -- ruler == [0, 1, 0, 2, 0, 1, 0, 3, ...
 
@@ -90,14 +92,19 @@ minMaxSlow xs = Just (minimum xs, maximum xs)
 
 {- -O0: Total time: ??? Total Memory in use: ??? -}
 {- -O2: Total time: ??? Total Memory in use: ??? -}
-minMax = undefined
+minMax [] = Nothing
+minMax [x] = Just (x, x)
+minMax (x:xs) = let (min', max') = foldl (\(min_, max_) y -> (min min_ y, max max_ y)) (x, x) xs
+                in Just (min', max')
 
 -- Дополнительное задание: реализуйте ту же самую функцию (под названием minMaxBang) с
 -- использованием явной строгости (seq и/или !)
 
 {- -O0: Total time: ??? Total Memory in use: ??? -}
 {- -O2: Total time: ??? Total Memory in use: ??? -}
-minMaxBang = undefined
+minMaxBang [] = Nothing
+minMaxBang [x] = Just (x, x)
+minMaxBang (x:xs) = let (min', max') = foldl (\(min_, max_) y -> (min min_ y seq min min_ y, max max_ y seq max max_ y)) (x, x) xs
 
 -- Скомпилируйте программу с аргументами `ghc Streams.hs -O2 -rtsopts -main-is Streams`
 -- и запустите `Streams.exe +RTS -s` (`./Streams +RTS -s` в Linux/OSX).
@@ -128,20 +135,21 @@ main = print $ minMaxSlow $ sTake 1000000 $ ruler
 -- или http://hackage.haskell.org/package/hedgehog-classes, если в предыдущем задании использовали Hedgehog.
 
 instance Functor Stream where
-    fmap = undefined
+    fmap f (x :> xs) = f x :> fmap f xs
 
 instance Applicative Stream where
-    pure = undefined
-    (<*>) = undefined
+    pure = x :> pure x
+    (f :> fs) <*> (x :> xs) = f x :> (fs <*> xs)
 
 instance Monad Stream where
     return = pure
     -- в этом случае может быть проще использовать реализацию через join
     -- xs >>= f = join ... where join = ...
-    (>>=) = undefined
+    xs >>= f = join $ fmap f xs where join (y :> ys) = y <> join ys
 
 -- https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Foldable.html
 instance Foldable Stream where
+    foldr f z (x :> xs) = f x (foldr f z xs)
     -- достаточно определить одну из них
     -- foldr = undefined
     -- foldMap = undefined
@@ -149,5 +157,5 @@ instance Foldable Stream where
 -- https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Traversable.html
 instance Traversable Stream where
     -- достаточно определить одну из них
-    -- traverse = undefined
-    -- sequenceA = undefined
+    traverse f (x :> xs) = liftA2 (:>) (f x) (traverse f xs)
+    sequenceA (x :> xs) = liftA2 (:>) x (sequenceA xs)

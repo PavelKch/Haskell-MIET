@@ -26,9 +26,9 @@ infixl 4 <**>
 -- реализуйте join' через >>== и наоборот
 class Applicative' m => Monad' m where
   (>>==) :: m a -> (a -> m b) -> m b
-  (>>==) = error "implement using join' (and Applicative')"
+  (>>==) ma f = join' $ f <$> ma
   join' :: m (m a) -> m a
-  join' = error "implement using >>== (and Applicative')"
+  join' mma = mma >>== id
 
 -- пример
 instance Functor' Maybe where
@@ -70,32 +70,33 @@ instance Monad' [] where
 -- liftA2' (+) (Just 1) (Just 2) == Just 3
 -- liftA2' (+) Nothing (Just 2) == Nothing
 liftA2' :: Applicative' f => (a -> b -> c) -> f a -> f b -> f c
-liftA2' = undefined
+liftA2' f a b = f <$$> a <*> b 
 
 -- Выполняет все действия в списке и собирает их результаты в один список
 -- seqA [Just 1, Just 2] == Just [1, 2]
 -- seqA [Just 1, Just 2, Nothing] == Nothing
 seqA :: Applicative' f => [f a] -> f [a]
-seqA = undefined
+seqA = foldr (liftA2' (:)) (pure' [])
 
 -- Применяет функцию, возвращающую действия, ко всем элементам списка, выполняет эти действия
 -- и собирает результаты в список
 -- traverseA Just [1, 2] == Just [1, 2]
 -- traverseA (\a -> if a > 2 then Just a else Nothing) [1, 3] == Nothing
 traverseA :: Applicative' f => (a -> f b) -> [a] -> f [b]
-traverseA = undefined
+traverseA f = sequenceA . map f
 
 -- Фильтрует список, используя "предикат с эффектом".
 -- filterA (\a -> if a > 10 then Nothing else Just (a > 0)) [-1, -2, 1, 2] == Just [1, 2]
 -- filterA (\a -> if a < 0 then Nothing else Just (a > 1)) [-1, -2, 1, 2] == Nothing
 filterA :: Applicative' f => (a -> f Bool) -> [a] -> f [a]
-filterA = undefined
+filterA _ [] = pure' []
+filterA p (x:xs) = liftA2' (\b -> if b then (x:) else id) (p x) (filterA p xs)
 
 -- Композиция монадических функций
 -- composeM Just Just == Just (т.е. для всех x: composeM Just Just x == Just x)
 -- composeM Just (const Nothing) == const Nothing
 composeM :: Monad' m => (b -> m c) -> (a -> m b) -> (a -> m c)
-composeM = undefined
+composeM f g x = g x >>= f
 
 -- Задание 3 -----------------------------------------
 
@@ -104,15 +105,24 @@ composeM = undefined
 -- Добавьте тесты на поведение функций из задания 2 с этими экземплярами
 
 instance Functor' (Either t) where
-  (<$$>) = undefined
+  (<$$>) f (Right x) = Right (f x)
+  (<$$>) _ (Left x) = Left x
 instance Applicative' (Either t) where
-  pure' = undefined
-  (<**>) = undefined
+  pure' = Right
+  (<>) (Right f) (Right x) = Right (f x)
+  (<>) (Left e) _ = Left e
+  (<>) _ (Left e) = Left e
 instance Monad' (Either t) where
+  Nothing >>== _ = Nothing
+  Just x >>== f = f x
+  join' Nothing = Nothing
+  join' (Just x) = x
 
 instance Functor' ((->) t) where -- (->) a b -- то же самое, что a -> b
-  (<$$>) = undefined
+  (<$$>) = fmap
 instance Applicative' ((->) t) where
-  pure' = undefined
-  (<**>) = undefined
+  pure' = pure
+  (<>) f g x = f x (g x)
 instance Monad' ((->) t) where
+  f >>== g = \x -> g (f x) x
+  join' f x = f x x
