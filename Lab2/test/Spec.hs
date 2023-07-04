@@ -5,24 +5,26 @@ import Test.Hspec
 main :: IO ()
 main = hspec $ do
     describe "poly" $ do
-        it "applyPoly" $ pending
-            applyPoly (P [1]) 0 `shouldBeв` 1  
-            applyPoly (P [1]) 1 `shouldBeв` 1  
-            applyPoly (P [1]) 100 `shouldBeв` 1  
-            applyPoly (P [0, 1]) 1 `shouldBeв` 1  
-            applyPoly (P [0, 1]) 0 `shouldBeв` 0  
-            applyPoly (P [0, (-1)]) 1 `shouldBeв` (-1)  
-            applyPoly (P [0, (-1)]) 0 `shouldBeв` 0  
-            applyPoly (P [0, 0, 1]) 0 `shouldBeв` 0  
-            applyPoly (P [0, 0, 1]) 1 `shouldBeв` 1  
-            applyPoly (P [0, 0, 1]) (-1) `shouldBeв` 1  
+        it "applyPoly" $ do
+            applyPoly (P [1]) 0 `shouldBe` 1  
+            applyPoly (P [1]) 1 `shouldBe` 1  
+            applyPoly (P [1]) 100 `shouldBe` 1  
+            applyPoly (P [0, 1]) 1 `shouldBe` 1  
+            applyPoly (P [0, 1]) 0 `shouldBe` 0  
+            applyPoly (P [0, (-1)]) 1 `shouldBe` (-1)  
+            applyPoly (P [0, (-1)]) 0 `shouldBe` 0  
+            applyPoly (P [0, 0, 1]) 0 `shouldBe` 0  
+            applyPoly (P [0, 0, 1]) 1 `shouldBe` 1  
+            applyPoly (P [0, 0, 1]) (-1) `shouldBe` 1  
             applyPoly (P [1, 1, 1, 1, 1, 1, 1]) 10 `shouldBe` ((10^0)  + (10^1) + (10^2) + (10^3) + (10^4) + (10^5) + (10^6))
         it "(==)" $ do
             (P [1]) == (P [1, 0, 0, 0, 0]) `shouldBe` True
             (P [1, 1, 1, 1]) == (P [1, 1, 1, 1, 0]) `shouldBe` True
             (P [1, 2, 3, 4]) == (P [1, 2, 3, 4]) `shouldBe` True
             (P [(-1), (-2), (-3), (-4)]) == (P [(-1), (-2), (-3), (-4)]) `shouldBe` True
-            (P [(-1), (-2), (-3), 4]) == (P [(-1), (-2), (-3), 4]) `shouldBe` False
+            (P [(-1), (-2), (-3), 4]) == (P [(-1), (-2), (-3), (-4)]) `shouldBe` False
+            (P [1]) == (P [1, 0, 1]) `shouldBe` False
+			
         it "show" $ do
             show (P [1]) `shouldBe` "1"
             show (P [1, 0]) `shouldBe` "1"
